@@ -139,6 +139,21 @@ async def analyze_on_demand(article_id: int):
 from fastapi.responses import StreamingResponse
 import json
 
+def _scrape_og_image(url: str) -> str:
+    """Prova a recuperare l'og:image dalla pagina HTML dell'articolo."""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        soup = BeautifulSoup(r.text, "html.parser")
+        for attr in ("og:image", "twitter:image"):
+            tag = soup.find("meta", property=attr) or soup.find("meta", attrs={"name": attr})
+            if tag and tag.get("content"):
+                return tag["content"]
+    except Exception:
+        pass
+    return ""
+
 @app.post("/analyze/{article_id}/stream")
 async def analyze_stream(article_id: int):
     import os
@@ -176,6 +191,17 @@ async def analyze_stream(article_id: int):
         async def error():
             yield f"data: {json.dumps({'type': 'error', 'message': 'articolo non trovato'})}\n\n"
         return StreamingResponse(error(), media_type="text/event-stream")
+
+    # Recupera immagine se mancante
+    if not article.get("image") and article.get("link"):
+        image = _scrape_og_image(article["link"])
+        if image:
+            c = get_connection()
+            c.execute("UPDATE articles SET image = ? WHERE id = ?", (image, article_id))
+            c.commit()
+            c.close()
+            article = dict(article)
+            article["image"] = image
 
     from analyzer import build_prompt
     from database import save_analysis, save_analysis_sources
