@@ -16,6 +16,11 @@ BLACKLIST_KEYWORDS = [
 
 RSS_FEEDS = {
     "tmw": "https://www.tuttomercatoweb.com/rss/",
+    "giallorossi": "https://www.giallorossi.net/feed/",
+    "lazionews": "https://www.lazionews.eu/feed/",
+    "juvenews": "https://www.juvenews.eu/feed/",
+    "milanista": "https://www.ilmilanista.it/feed/",
+    "fcinter1908": "https://www.fcinter1908.it/feed/",
     "corriere_sport": "https://www.corrieredellosport.it/rss/",
     "corriere_serie_a": "https://www.corrieredellosport.it/rss/calcio/serie-a",
     "corriere_mercato": "https://www.corrieredellosport.it/rss/calcio/calcio-mercato",
