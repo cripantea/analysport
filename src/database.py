@@ -38,8 +38,20 @@ def init_db():
         );
     """)
     conn.commit()
+    # Migrazione: colonna views
+    try:
+        conn.execute("ALTER TABLE analyses ADD COLUMN views INTEGER DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
     print("Database inizializzato")
+
+def increment_views(analysis_id: int):
+    conn = get_connection()
+    conn.execute("UPDATE analyses SET views = COALESCE(views, 0) + 1 WHERE id = ?", (analysis_id,))
+    conn.commit()
+    conn.close()
 
 def save_analysis_sources(analysis_id: int, sources: list[dict]):
     conn = get_connection()

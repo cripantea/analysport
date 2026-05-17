@@ -12,6 +12,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [activePeriod, setActivePeriod] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetch(`${API_URL}/analyses`)
@@ -37,11 +38,13 @@ export default function App() {
   const handleTagClick = (tag: string) => {
     setActiveTag(prev => prev === tag ? null : tag)
     setActivePeriod(null)
+    setCurrentPage(1)
   }
 
   const handlePeriodClick = (period: string) => {
     setActivePeriod(prev => prev === period ? null : period)
     setActiveTag(null)
+    setCurrentPage(1)
   }
 
   const resetAll = () => {
@@ -85,6 +88,8 @@ export default function App() {
               loading={loading}
               activeTag={activeTag}
               activePeriod={activePeriod}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
               onSelect={setSelected}
             />
           </main>

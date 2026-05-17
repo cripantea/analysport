@@ -6,7 +6,14 @@ interface Props {
 }
 
 export default function RightSidebar({ analyses, onSelect }: Props) {
-  const featured = analyses.filter(a => a.image).slice(0, 5)
+  const featured = [...analyses]
+    .filter(a => a.image)
+    .sort((a, b) => {
+      const sc = (b.sources_count ?? 0) - (a.sources_count ?? 0)
+      if (sc !== 0) return sc
+      return (b.views ?? 0) - (a.views ?? 0)
+    })
+    .slice(0, 5)
 
   if (featured.length === 0) return null
 
@@ -30,6 +37,9 @@ export default function RightSidebar({ analyses, onSelect }: Props) {
             <div style={styles.cardBody}>
               <div style={styles.source}>{a.source}</div>
               <div style={styles.title}>{a.title}</div>
+              {(a.sources_count ?? 0) > 0 && (
+                <div style={styles.meta}>{a.sources_count} fonti correlate</div>
+              )}
             </div>
           </div>
         ))}
@@ -66,4 +76,5 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "5px",
   },
   title: { fontSize: "13px", color: "#ddd", lineHeight: 1.4 },
+  meta: { fontSize: "11px", color: "#4fc3f7", marginTop: "6px", opacity: 0.7 },
 }

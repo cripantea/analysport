@@ -7,6 +7,8 @@ export interface Analysis {
   analysis_text: string
   analyzed_at: string
   image?: string
+  views?: number
+  sources_count?: number
 }
 
 export interface Source {

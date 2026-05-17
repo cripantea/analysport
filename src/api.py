@@ -5,9 +5,13 @@ sys.path.append(str(Path(__file__).parent))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import get_connection
+from database import get_connection, init_db, increment_views
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup():
+    init_db()
 
 _default_origins = "http://localhost:5173,http://localhost:5174"
 _allow_origins = os.getenv("ALLOW_ORIGINS", _default_origins).split(",")
@@ -20,7 +24,7 @@ app.add_middleware(
 )
 
 @app.get("/analyses")
-def get_analyses(limit: int = 20, offset: int = 0):
+def get_analyses(limit: int = 500, offset: int = 0):
     conn = get_connection()
     conn.row_factory = dict_factory
     rows = conn.execute("""
@@ -28,11 +32,13 @@ def get_analyses(limit: int = 20, offset: int = 0):
             an.id,
             an.analysis_text,
             an.analyzed_at,
+            an.views,
             a.title,
             a.source,
             a.link,
             a.image,
-            a.published
+            a.published,
+            (SELECT COUNT(*) FROM analysis_sources s WHERE s.analysis_id = an.id) AS sources_count
         FROM analyses an
         JOIN articles a ON a.id = an.article_id
         ORDER BY an.analyzed_at DESC
@@ -54,6 +60,7 @@ def get_sources(id: int):
 
 @app.get("/analyses/{id}")
 def get_analysis(id: int):
+    increment_views(id)
     conn = get_connection()
     conn.row_factory = dict_factory
     row = conn.execute("""

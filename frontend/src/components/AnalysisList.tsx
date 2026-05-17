@@ -5,8 +5,12 @@ interface Props {
   loading: boolean
   activeTag: string | null
   activePeriod: string | null
+  currentPage: number
+  onPageChange: (page: number) => void
   onSelect: (a: Analysis) => void
 }
+
+const PAGE_SIZE = 20
 
 const MONTHS_IT = [
   "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
@@ -19,7 +23,9 @@ function periodLabel(dateStr: string): string {
   return `${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`
 }
 
-export default function AnalysisList({ analyses, loading, activeTag, activePeriod, onSelect }: Props) {
+export default function AnalysisList({
+  analyses, loading, activeTag, activePeriod, currentPage, onPageChange, onSelect,
+}: Props) {
   if (loading) return <div style={styles.loading}>Caricamento...</div>
 
   let filtered = analyses
@@ -30,6 +36,16 @@ export default function AnalysisList({ analyses, loading, activeTag, activePerio
     filtered = filtered.filter(a => periodLabel(a.published) === activePeriod)
   }
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const safePage = Math.min(currentPage, totalPages || 1)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  // Calcola range pagine da mostrare (max 5, centrato sulla pagina corrente)
+  const delta = 2
+  const start = Math.max(1, safePage - delta)
+  const end = Math.min(totalPages, safePage + delta)
+  const pageNumbers = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+
   return (
     <div>
       {(activeTag || activePeriod) && (
@@ -38,11 +54,12 @@ export default function AnalysisList({ analyses, loading, activeTag, activePerio
           {" — "}{filtered.length} risultat{filtered.length === 1 ? "o" : "i"}
         </div>
       )}
+
       <div style={styles.list}>
-        {filtered.length === 0 ? (
+        {paginated.length === 0 ? (
           <div style={styles.empty}>Nessuna analisi trovata per questo filtro.</div>
         ) : (
-          filtered.map(a => (
+          paginated.map(a => (
             <div
               key={a.id}
               className="analysis-card"
@@ -70,6 +87,52 @@ export default function AnalysisList({ analyses, loading, activeTag, activePerio
           ))
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div style={styles.pagination}>
+          <button
+            style={{ ...styles.pageBtn, ...(safePage === 1 ? styles.pageBtnDisabled : {}) }}
+            onClick={() => onPageChange(safePage - 1)}
+            disabled={safePage === 1}
+          >
+            ←
+          </button>
+
+          {start > 1 && (
+            <>
+              <button style={styles.pageBtn} onClick={() => onPageChange(1)}>1</button>
+              {start > 2 && <span style={styles.pageDots}>…</span>}
+            </>
+          )}
+
+          {pageNumbers.map(n => (
+            <button
+              key={n}
+              style={{ ...styles.pageBtn, ...(n === safePage ? styles.pageBtnActive : {}) }}
+              onClick={() => onPageChange(n)}
+            >
+              {n}
+            </button>
+          ))}
+
+          {end < totalPages && (
+            <>
+              {end < totalPages - 1 && <span style={styles.pageDots}>…</span>}
+              <button style={styles.pageBtn} onClick={() => onPageChange(totalPages)}>{totalPages}</button>
+            </>
+          )}
+
+          <button
+            style={{ ...styles.pageBtn, ...(safePage === totalPages ? styles.pageBtnDisabled : {}) }}
+            onClick={() => onPageChange(safePage + 1)}
+            disabled={safePage === totalPages}
+          >
+            →
+          </button>
+
+          <span style={styles.pageInfo}>{safePage} / {totalPages}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -102,4 +165,44 @@ const styles: Record<string, React.CSSProperties> = {
   source: { fontSize: "11px", color: "#4fc3f7", textTransform: "uppercase", marginBottom: "6px" },
   title: { fontSize: "15px", color: "#ffffff", lineHeight: 1.4, marginBottom: "8px" },
   date: { fontSize: "12px", color: "#666" },
+  pagination: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "6px",
+    marginTop: "28px",
+    flexWrap: "wrap",
+  },
+  pageBtn: {
+    background: "none",
+    border: "1px solid #1a2a40",
+    color: "#aaa",
+    fontSize: "13px",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "all 0.15s",
+    minWidth: "36px",
+  },
+  pageBtnActive: {
+    backgroundColor: "#4fc3f7",
+    borderColor: "#4fc3f7",
+    color: "#000",
+    fontWeight: 600,
+  },
+  pageBtnDisabled: {
+    opacity: 0.3,
+    cursor: "default",
+  },
+  pageDots: {
+    color: "#444",
+    fontSize: "13px",
+    padding: "0 4px",
+  },
+  pageInfo: {
+    color: "#444",
+    fontSize: "12px",
+    marginLeft: "8px",
+  },
 }
