@@ -4,8 +4,7 @@ import AnalysisDetail from "./components/AnalysisDetail"
 import LeftSidebar from "./components/LeftSidebar"
 import RightSidebar from "./components/RightSidebar"
 import type { Analysis } from "./types"
-
-const API_URL = ""
+import { API_URL } from "./config"
 
 export default function App() {
   const [selected, setSelected] = useState<Analysis | null>(null)

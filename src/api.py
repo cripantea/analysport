@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
@@ -8,9 +9,12 @@ from database import get_connection
 
 app = FastAPI()
 
+_default_origins = "http://localhost:5173,http://localhost:5174"
+_allow_origins = os.getenv("ALLOW_ORIGINS", _default_origins).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=_allow_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

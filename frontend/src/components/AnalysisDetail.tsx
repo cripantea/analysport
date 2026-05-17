@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import type { Analysis, Source } from "../types"
-
-const API_URL = "http://localhost:8002"
+import { API_URL } from "../config"
 
 export default function AnalysisDetail({
   analysis,
