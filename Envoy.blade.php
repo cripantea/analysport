@@ -1,4 +1,4 @@
-@servers(['production' => 'cristi@srv961648'])
+@servers(['production' => 'cristi@srv961648.hstgr.cloud'])
 
 @setup
     $appPath     = '/home/cristi/project-alfa';
